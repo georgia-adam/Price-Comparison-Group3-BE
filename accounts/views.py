@@ -24,24 +24,24 @@ def login_attempt(request):
         user_obj = User.objects.filter(username = username).first()
         if user_obj is None:
             messages.success(request, 'User not found.')
-            return redirect('/accounts/login')
+            return redirect('/signup')
         
         
         profile_obj = Profile.objects.filter(user = user_obj ).first()
 
         if not profile_obj.is_verified:
             messages.success(request, 'Profile is not verified check your mail.')
-            return redirect('/accounts/login')
+            return redirect('/signup')
 
         user = authenticate(username = username , password = password)
         if user is None:
             messages.success(request, 'Wrong password.')
-            return redirect('/accounts/login')
+            return redirect('/signup')
         
         login(request , user)
         return redirect('/')
 
-    return render(request , 'login.html')
+    return render(request , 'signup.html')
 
 def register_attempt(request):
 
@@ -71,6 +71,7 @@ def register_attempt(request):
 
         except Exception as e:
             print(e)
+            return redirect("/")
 
 
     return render(request , 'register.html')
@@ -98,11 +99,11 @@ def verify(request , auth_token):
         if profile_obj:
             if profile_obj.is_verified:
                 messages.success(request, 'Your account is already verified.')
-                return redirect('/accounts/login')
+                return redirect('/signup')
             profile_obj.is_verified = True
             profile_obj.save()
             messages.success(request, 'Your account has been verified.')
-            return redirect('/accounts/login')
+            return redirect('/signup')
         else:
             return redirect('/error')
     except Exception as e:
@@ -199,17 +200,21 @@ def resetpage(request):
         
         if user_obj is None:
             messages.success(request, 'User not found.')
-            return redirect('/accounts/login')
+            return redirect('/signup')
         
         profile_obj = Profile.objects.filter(user = user_obj).first()
 
-        if profile_obj.is_reset:
+        if not profile_obj.is_reset:
             user_obj.set_password(password)
             user_obj.save()
             return redirect('/reset_success')
         
-        if not profile_obj.is_reset:
+        if profile_obj.is_reset:
             messages.success(request, 'Please click the link emailed to you with a token.')
             return redirect('/resetpage')
     
     return render(request , 'resetpage.html')
+
+
+#def signup(request):
+    #return render(request, 'signup.html')
